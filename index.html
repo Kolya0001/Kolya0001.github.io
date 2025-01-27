@@ -73,6 +73,28 @@
     button:hover {
       background-color: #555;
     }
+    .game-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto;
+      border: 2px solid #333;
+      background-color: #f0f0f0;
+    }
+    .falling-object {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background-color: red;
+      border-radius: 50%;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .score {
+      margin-top: 20px;
+      font-size: 20px;
+    }
   </style>
 </head>
 <body>
@@ -108,6 +130,16 @@
     <div id="contact" class="section">
       <h1>Contact</h1>
       <p>Get in touch with us here.</p>
+      <p>My VK: <a href="https://vk.com/kolyalovebmw" target="_blank">https://vk.com/kolyalovebmw</a></p>
+
+      <!-- Mini game -->
+      <h2>Catch the Falling Object!</h2>
+      <div class="game-container">
+        <div id="fallingObject" class="falling-object"></div>
+      </div>
+      <div class="score">
+        Score: <span id="score">0</span>
+      </div>
     </div>
   </div>
 
@@ -175,7 +207,55 @@
     // Load comments when the page is loaded
     window.onload = function() {
       loadComments();
+      startGame();
     };
+
+    // Mini game logic
+    let score = 0;
+    let fallingObject = document.getElementById("fallingObject");
+
+    function startGame() {
+      let gameContainer = document.querySelector(".game-container");
+      let objectHeight = 30; // height of the falling object
+
+      // Random starting position for the falling object
+      let leftPosition = Math.floor(Math.random() * (gameContainer.offsetWidth - objectHeight));
+      fallingObject.style.left = leftPosition + "px";
+
+      let objectTop = 0;
+
+      function gameLoop() {
+        objectTop += 5;
+        fallingObject.style.top = objectTop + "px";
+
+        if (objectTop >= gameContainer.offsetHeight - objectHeight) {
+          // Object hit the bottom, restart the game
+          objectTop = 0;
+          leftPosition = Math.floor(Math.random() * (gameContainer.offsetWidth - objectHeight));
+          fallingObject.style.left = leftPosition + "px";
+        }
+
+        requestAnimationFrame(gameLoop);
+      }
+
+      gameLoop();
+
+      // Check for click events to catch the object
+      gameContainer.addEventListener("click", function(event) {
+        if (
+          event.clientX >= fallingObject.offsetLeft &&
+          event.clientX <= fallingObject.offsetLeft + fallingObject.offsetWidth &&
+          event.clientY >= fallingObject.offsetTop &&
+          event.clientY <= fallingObject.offsetTop + fallingObject.offsetHeight
+        ) {
+          score++;
+          document.getElementById("score").textContent = score;
+          objectTop = 0; // Reset object position
+          leftPosition = Math.floor(Math.random() * (gameContainer.offsetWidth - objectHeight));
+          fallingObject.style.left = leftPosition + "px";
+        }
+      });
+    }
   </script>
 </body>
 </html>
