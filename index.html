@@ -74,28 +74,11 @@
       background-color: #555;
     }
     .game-container {
-      position: relative;
-      width: 500px;
-      height: 500px;
-      margin: 0 auto;
-      border: 2px solid #333;
-      background-color: #e0e0e0;
+      margin-top: 20px;
     }
-    .tank {
-      width: 40px;
-      height: 40px;
-      background-color: green;
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .bullet {
-      width: 5px;
-      height: 10px;
-      background-color: red;
-      position: absolute;
-      display: none;
+    .game-info {
+      font-size: 18px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -135,14 +118,17 @@
       <p>Get in touch with us here.</p>
       <p>My VK: <a href="https://vk.com/kolyalovebmw" target="_blank">https://vk.com/kolyalovebmw</a></p>
 
-      <!-- Mini game: Tank game -->
-      <h2>Mini Tank Game</h2>
+      <!-- Game: 21 (Blackjack) -->
+      <h2>Mini Game: 21 (Blackjack)</h2>
       <div class="game-container">
-        <div class="tank" id="tank"></div>
-        <div class="bullet" id="bullet"></div>
-      </div>
-      <div class="score">
-        Score: <span id="score">0</span>
+        <div class="game-info">
+          <p>Player's Cards: <span id="playerCards"></span> | Total: <span id="playerTotal">0</span></p>
+          <p>Bot's Cards: <span id="botCards"></span> | Total: <span id="botTotal">0</span></p>
+          <p>Game Status: <span id="gameStatus"></span></p>
+        </div>
+        <button onclick="startGame()">Start New Game</button>
+        <button onclick="hit()">Hit</button>
+        <button onclick="stand()">Stand</button>
       </div>
     </div>
   </div>
@@ -155,125 +141,120 @@
       document.getElementById(sectionId).classList.add('active');
     }
 
-    // Function to add a comment
-    function addComment() {
-      let userName = document.getElementById("nameInput").value.trim();
-      let commentText = document.getElementById("commentInput").value.trim();
+    // Game variables
+    let playerCards = [];
+    let playerTotal = 0;
+    let botCards = [];
+    let botTotal = 0;
+    let gameInProgress = false;
 
-      if (userName === "" || commentText === "") {
-        alert("Please enter both your name and a comment.");
-        return;
-      }
-
-      let commentList = document.getElementById("commentList");
-
-      // Create a new comment element
-      let comment = document.createElement("div");
-      comment.classList.add("comment");
-      comment.innerHTML = "<strong>" + userName + ":</strong> " + commentText;
-
-      // Add the comment to the list
-      commentList.appendChild(comment);
-
-      // Save the comment to LocalStorage
-      saveComments();
-
-      // Clear the input fields
-      document.getElementById("nameInput").value = "";
-      document.getElementById("commentInput").value = "";
-    }
-
-    // Function to save the comments to LocalStorage
-    function saveComments() {
-      let comments = [];
-      let commentElements = document.querySelectorAll('.comment');
-      commentElements.forEach(element => {
-        comments.push(element.innerHTML);
-      });
-
-      // Store the comments in LocalStorage
-      localStorage.setItem('comments', JSON.stringify(comments));
-    }
-
-    // Function to load comments from LocalStorage
-    function loadComments() {
-      let comments = JSON.parse(localStorage.getItem('comments')) || [];
-      let commentList = document.getElementById("commentList");
-      
-      // Clear existing comments
-      commentList.innerHTML = "";
-
-      // Add stored comments to the page
-      comments.forEach(commentText => {
-        let comment = document.createElement("div");
-        comment.classList.add("comment");
-        comment.innerHTML = commentText;
-        commentList.appendChild(comment);
-      });
-    }
-
-    // Load comments when the page is loaded
-    window.onload = function() {
-      loadComments();
-      startTankGame();
+    // Card values
+    const cardValues = {
+      2: 2,
+      3: 3,
+      4: 4,
+      5: 5,
+      6: 6,
+      7: 7,
+      8: 8,
+      9: 9,
+      10: 10,
+      11: 10, // Jack
+      12: 10, // Queen
+      13: 10, // King
+      1: 11,  // Ace
     };
 
-    // Mini Tank Game Logic
-    let score = 0;
-    let tank = document.getElementById("tank");
-    let bullet = document.getElementById("bullet");
-    let gameContainer = document.querySelector(".game-container");
-    let bulletSpeed = 4;
-    let bulletIsFired = false;
-
-    // Function to move the tank
-    function moveTank(event) {
-      let tankLeft = tank.offsetLeft;
-      let tankTop = tank.offsetTop;
-
-      // Left and right movement
-      if (event.key === "ArrowLeft" && tankLeft > 0) {
-        tank.style.left = (tankLeft - 10) + "px";
-      } else if (event.key === "ArrowRight" && tankLeft < gameContainer.offsetWidth - tank.offsetWidth) {
-        tank.style.left = (tankLeft + 10) + "px";
-      }
-
-      // Up and down movement (optional)
-      if (event.key === "ArrowUp" && tankTop > 0) {
-        tank.style.top = (tankTop - 10) + "px";
-      } else if (event.key === "ArrowDown" && tankTop < gameContainer.offsetHeight - tank.offsetHeight) {
-        tank.style.top = (tankTop + 10) + "px";
-      }
-
-      // Fire bullet
-      if (event.key === " " && !bulletIsFired) {
-        fireBullet();
-      }
+    // Start a new game
+    function startGame() {
+      playerCards = [];
+      botCards = [];
+      playerTotal = 0;
+      botTotal = 0;
+      gameInProgress = true;
+      document.getElementById("gameStatus").textContent = "Game in progress...";
+      document.getElementById("playerCards").textContent = "";
+      document.getElementById("botCards").textContent = "";
+      document.getElementById("playerTotal").textContent = "0";
+      document.getElementById("botTotal").textContent = "0";
+      dealCards();
     }
 
-    // Function to fire a bullet
-    function fireBullet() {
-      bullet.style.left = tank.offsetLeft + tank.offsetWidth / 2 - bullet.offsetWidth / 2 + "px";
-      bullet.style.bottom = (tank.offsetTop + tank.offsetHeight) + "px";
-      bullet.style.display = "block";
-      bulletIsFired = true;
+    // Deal initial cards to player and bot
+    function dealCards() {
+      playerCards.push(drawCard(), drawCard());
+      botCards.push(drawCard(), drawCard());
+      updateScores();
+    }
 
-      let bulletInterval = setInterval(function() {
-        let bulletTop = bullet.offsetTop;
+    // Draw a random card
+    function drawCard() {
+      let card = Math.floor(Math.random() * 13) + 1;
+      return card;
+    }
 
-        if (bulletTop <= 0) {
-          bullet.style.display = "none";
-          bulletIsFired = false;
-          clearInterval(bulletInterval);
-        } else {
-          bullet.style.top = (bulletTop - bulletSpeed) + "px";
+    // Update the displayed scores
+    function updateScores() {
+      playerTotal = calculateTotal(playerCards);
+      botTotal = calculateTotal(botCards);
+
+      document.getElementById("playerCards").textContent = playerCards.join(", ");
+      document.getElementById("botCards").textContent = botCards.join(", ");
+      document.getElementById("playerTotal").textContent = playerTotal;
+      document.getElementById("botTotal").textContent = botTotal;
+    }
+
+    // Calculate total value of the hand
+    function calculateTotal(cards) {
+      let total = 0;
+      let aceCount = 0;
+      cards.forEach(card => {
+        total += cardValues[card];
+        if (card === 1) aceCount++;
+      });
+      // Adjust for aces if total exceeds 21
+      while (total > 21 && aceCount > 0) {
+        total -= 10;
+        aceCount--;
+      }
+      return total;
+    }
+
+    // Player hits (draws a card)
+    function hit() {
+      if (gameInProgress && playerTotal < 21) {
+        playerCards.push(drawCard());
+        updateScores();
+        if (playerTotal > 21) {
+          document.getElementById("gameStatus").textContent = "You lost, you went over 21!";
+          gameInProgress = false;
         }
-      }, 20);
+      }
     }
 
-    // Start game
-    function startTankGame() {
-      document.addEventListener("keydown", moveTank);
+    // Player stands (ends turn)
+    function stand() {
+      if (gameInProgress) {
+        while (botTotal < 17) {
+          botCards.push(drawCard());
+          updateScores();
+        }
+        checkWinner();
+      }
+    }
+
+    // Check who is the winner
+    function checkWinner() {
+      if (botTotal > 21) {
+        document.getElementById("gameStatus").textContent = "Bot went over 21. You win!";
+      } else if (playerTotal > botTotal) {
+        document.getElementById("gameStatus").textContent = "You win!";
+      } else if (playerTotal < botTotal) {
+        document.getElementById("gameStatus").textContent = "You lost!";
+      } else {
+        document.getElementById("gameStatus").textContent = "It's a tie!";
+      }
+      gameInProgress = false;
     }
   </script>
 </body>
