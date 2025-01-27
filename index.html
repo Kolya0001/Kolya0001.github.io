@@ -92,7 +92,6 @@
   <div class="content">
     <div id="home" class="section active">
       <h1>Welcome to the Home Page</h1>
-      
       <p><em>Это я и мой сайт</em></p>
       <img src="https://i.ibb.co/3M4885j/3tx-E17-H9-EJI.jpg" alt="My photo">
 
@@ -106,6 +105,7 @@
         <div id="commentList"></div>
       </div>
     </div>
+
     <div id="about" class="section">
       <h1>About Us</h1>
       <p>I'm 21 years old.<br>
@@ -113,6 +113,7 @@
       Accumulated amount: 0/50000$<br>
       <a href="http://scam.net" target="_blank">Link to donations scam.net</a></p>
     </div>
+
     <div id="contact" class="section">
       <h1>Contact</h1>
       <p>Get in touch with us here.</p>
@@ -139,6 +140,27 @@
       let sections = document.querySelectorAll('.section');
       sections.forEach(section => section.classList.remove('active'));
       document.getElementById(sectionId).classList.add('active');
+    }
+
+    // Function to handle comments
+    function addComment() {
+      let name = document.getElementById('nameInput').value;
+      let comment = document.getElementById('commentInput').value;
+
+      if (name && comment) {
+        let commentList = document.getElementById('commentList');
+        let newComment = document.createElement('div');
+        newComment.classList.add('comment');
+        newComment.innerHTML = '<strong>' + name + ':</strong><br>' + comment;
+
+        commentList.appendChild(newComment);
+
+        // Clear the input fields
+        document.getElementById('nameInput').value = '';
+        document.getElementById('commentInput').value = '';
+      } else {
+        alert('Please enter both your name and comment!');
+      }
     }
 
     // Game variables
