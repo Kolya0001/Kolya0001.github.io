@@ -75,25 +75,27 @@
     }
     .game-container {
       position: relative;
-      width: 300px;
-      height: 300px;
+      width: 500px;
+      height: 500px;
       margin: 0 auto;
       border: 2px solid #333;
-      background-color: #f0f0f0;
+      background-color: #e0e0e0;
     }
-    .falling-object {
+    .tank {
+      width: 40px;
+      height: 40px;
+      background-color: green;
       position: absolute;
-      width: 30px;
-      height: 30px;
-      background-color: red;
-      border-radius: 50%;
-      top: 0;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
     }
-    .score {
-      margin-top: 20px;
-      font-size: 20px;
+    .bullet {
+      width: 5px;
+      height: 10px;
+      background-color: red;
+      position: absolute;
+      display: none;
     }
   </style>
 </head>
@@ -133,10 +135,11 @@
       <p>Get in touch with us here.</p>
       <p>My VK: <a href="https://vk.com/kolyalovebmw" target="_blank">https://vk.com/kolyalovebmw</a></p>
 
-      <!-- Mini game -->
-      <h2>Catch the Falling Object!</h2>
+      <!-- Mini game: Tank game -->
+      <h2>Mini Tank Game</h2>
       <div class="game-container">
-        <div id="fallingObject" class="falling-object"></div>
+        <div class="tank" id="tank"></div>
+        <div class="bullet" id="bullet"></div>
       </div>
       <div class="score">
         Score: <span id="score">0</span>
@@ -212,54 +215,65 @@
     // Load comments when the page is loaded
     window.onload = function() {
       loadComments();
-      startGame();
+      startTankGame();
     };
 
-    // Mini game logic
+    // Mini Tank Game Logic
     let score = 0;
-    let fallingObject = document.getElementById("fallingObject");
+    let tank = document.getElementById("tank");
+    let bullet = document.getElementById("bullet");
+    let gameContainer = document.querySelector(".game-container");
+    let bulletSpeed = 4;
+    let bulletIsFired = false;
 
-    function startGame() {
-      let gameContainer = document.querySelector(".game-container");
-      let objectHeight = 30; // height of the falling object
+    // Function to move the tank
+    function moveTank(event) {
+      let tankLeft = tank.offsetLeft;
+      let tankTop = tank.offsetTop;
 
-      // Random starting position for the falling object
-      let leftPosition = Math.floor(Math.random() * (gameContainer.offsetWidth - objectHeight));
-      fallingObject.style.left = leftPosition + "px";
-
-      let objectTop = 0;
-
-      function gameLoop() {
-        objectTop += 5;
-        fallingObject.style.top = objectTop + "px";
-
-        if (objectTop >= gameContainer.offsetHeight - objectHeight) {
-          // Object hit the bottom, restart the game
-          objectTop = 0;
-          leftPosition = Math.floor(Math.random() * (gameContainer.offsetWidth - objectHeight));
-          fallingObject.style.left = leftPosition + "px";
-        }
-
-        requestAnimationFrame(gameLoop);
+      // Left and right movement
+      if (event.key === "ArrowLeft" && tankLeft > 0) {
+        tank.style.left = (tankLeft - 10) + "px";
+      } else if (event.key === "ArrowRight" && tankLeft < gameContainer.offsetWidth - tank.offsetWidth) {
+        tank.style.left = (tankLeft + 10) + "px";
       }
 
-      gameLoop();
+      // Up and down movement (optional)
+      if (event.key === "ArrowUp" && tankTop > 0) {
+        tank.style.top = (tankTop - 10) + "px";
+      } else if (event.key === "ArrowDown" && tankTop < gameContainer.offsetHeight - tank.offsetHeight) {
+        tank.style.top = (tankTop + 10) + "px";
+      }
 
-      // Check for click events to catch the object
-      gameContainer.addEventListener("click", function(event) {
-        if (
-          event.clientX >= fallingObject.offsetLeft &&
-          event.clientX <= fallingObject.offsetLeft + fallingObject.offsetWidth &&
-          event.clientY >= fallingObject.offsetTop &&
-          event.clientY <= fallingObject.offsetTop + fallingObject.offsetHeight
-        ) {
-          score++;
-          document.getElementById("score").textContent = score;
-          objectTop = 0; // Reset object position
-          leftPosition = Math.floor(Math.random() * (gameContainer.offsetWidth - objectHeight));
-          fallingObject.style.left = leftPosition + "px";
+      // Fire bullet
+      if (event.key === " " && !bulletIsFired) {
+        fireBullet();
+      }
+    }
+
+    // Function to fire a bullet
+    function fireBullet() {
+      bullet.style.left = tank.offsetLeft + tank.offsetWidth / 2 - bullet.offsetWidth / 2 + "px";
+      bullet.style.bottom = (tank.offsetTop + tank.offsetHeight) + "px";
+      bullet.style.display = "block";
+      bulletIsFired = true;
+
+      let bulletInterval = setInterval(function() {
+        let bulletTop = bullet.offsetTop;
+
+        if (bulletTop <= 0) {
+          bullet.style.display = "none";
+          bulletIsFired = false;
+          clearInterval(bulletInterval);
+        } else {
+          bullet.style.top = (bulletTop - bulletSpeed) + "px";
         }
-      });
+      }, 20);
+    }
+
+    // Start game
+    function startTankGame() {
+      document.addEventListener("keydown", moveTank);
     }
   </script>
 </body>
