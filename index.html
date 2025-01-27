@@ -109,12 +109,14 @@
   </div>
 
   <script>
+    // Function to show the relevant section
     function showSection(sectionId) {
       let sections = document.querySelectorAll('.section');
       sections.forEach(section => section.classList.remove('active'));
       document.getElementById(sectionId).classList.add('active');
     }
 
+    // Function to add a comment
     function addComment() {
       let commentText = document.getElementById("commentInput").value;
       if (commentText.trim() !== "") {
@@ -128,12 +130,49 @@
         // Add the comment to the list
         commentList.appendChild(comment);
 
+        // Save the comment to LocalStorage
+        saveComments();
+
         // Clear the input field
         document.getElementById("commentInput").value = "";
       } else {
         alert("Please enter a comment.");
       }
     }
+
+    // Function to save the comments to LocalStorage
+    function saveComments() {
+      let comments = [];
+      let commentElements = document.querySelectorAll('.comment');
+      commentElements.forEach(element => {
+        comments.push(element.textContent);
+      });
+
+      // Store the comments in LocalStorage
+      localStorage.setItem('comments', JSON.stringify(comments));
+    }
+
+    // Function to load comments from LocalStorage
+    function loadComments() {
+      let comments = JSON.parse(localStorage.getItem('comments')) || [];
+      let commentList = document.getElementById("commentList");
+      
+      // Clear existing comments
+      commentList.innerHTML = "";
+
+      // Add stored comments to the page
+      comments.forEach(commentText => {
+        let comment = document.createElement("div");
+        comment.classList.add("comment");
+        comment.textContent = commentText;
+        commentList.appendChild(comment);
+      });
+    }
+
+    // Load comments when the page is loaded
+    window.onload = function() {
+      loadComments();
+    };
   </script>
 </body>
 </html>
