@@ -114,6 +114,7 @@
       <!-- Comment section -->
       <div class="comments">
         <h3>Leave a Comment:</h3>
+        <input type="text" id="nameInput" placeholder="Enter your name">
         <input type="text" id="commentInput" placeholder="Enter your comment here">
         <button onclick="addComment()">Submit Comment</button>
 
@@ -153,26 +154,30 @@
 
     // Function to add a comment
     function addComment() {
-      let commentText = document.getElementById("commentInput").value;
-      if (commentText.trim() !== "") {
-        let commentList = document.getElementById("commentList");
+      let userName = document.getElementById("nameInput").value.trim();
+      let commentText = document.getElementById("commentInput").value.trim();
 
-        // Create a new comment element
-        let comment = document.createElement("div");
-        comment.classList.add("comment");
-        comment.textContent = commentText;
-
-        // Add the comment to the list
-        commentList.appendChild(comment);
-
-        // Save the comment to LocalStorage
-        saveComments();
-
-        // Clear the input field
-        document.getElementById("commentInput").value = "";
-      } else {
-        alert("Please enter a comment.");
+      if (userName === "" || commentText === "") {
+        alert("Please enter both your name and a comment.");
+        return;
       }
+
+      let commentList = document.getElementById("commentList");
+
+      // Create a new comment element
+      let comment = document.createElement("div");
+      comment.classList.add("comment");
+      comment.innerHTML = "<strong>" + userName + ":</strong> " + commentText;
+
+      // Add the comment to the list
+      commentList.appendChild(comment);
+
+      // Save the comment to LocalStorage
+      saveComments();
+
+      // Clear the input fields
+      document.getElementById("nameInput").value = "";
+      document.getElementById("commentInput").value = "";
     }
 
     // Function to save the comments to LocalStorage
@@ -180,7 +185,7 @@
       let comments = [];
       let commentElements = document.querySelectorAll('.comment');
       commentElements.forEach(element => {
-        comments.push(element.textContent);
+        comments.push(element.innerHTML);
       });
 
       // Store the comments in LocalStorage
@@ -199,7 +204,7 @@
       comments.forEach(commentText => {
         let comment = document.createElement("div");
         comment.classList.add("comment");
-        comment.textContent = commentText;
+        comment.innerHTML = commentText;
         commentList.appendChild(comment);
       });
     }
