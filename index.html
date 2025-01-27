@@ -155,6 +155,9 @@
 
         commentList.appendChild(newComment);
 
+        // Save comments to localStorage
+        saveComments();
+
         // Clear the input fields
         document.getElementById('nameInput').value = '';
         document.getElementById('commentInput').value = '';
@@ -162,6 +165,44 @@
         alert('Please enter both your name and comment!');
       }
     }
+
+    // Save comments to localStorage
+    function saveComments() {
+      let commentList = document.getElementById('commentList');
+      let comments = [];
+
+      // Collect all comments into an array
+      let commentElements = commentList.getElementsByClassName('comment');
+      for (let comment of commentElements) {
+        comments.push(comment.innerHTML);
+      }
+
+      // Save comments to localStorage
+      localStorage.setItem('comments', JSON.stringify(comments));
+    }
+
+    // Load comments from localStorage
+    function loadComments() {
+      let savedComments = localStorage.getItem('comments');
+      if (savedComments) {
+        let comments = JSON.parse(savedComments);
+        let commentList = document.getElementById('commentList');
+
+        // Load saved comments
+        for (let comment of comments) {
+          let newComment = document.createElement('div');
+          newComment.classList.add('comment');
+          newComment.innerHTML = comment;
+
+          commentList.appendChild(newComment);
+        }
+      }
+    }
+
+    // Load comments when the page loads
+    window.onload = function() {
+      loadComments();
+    };
 
     // Game variables
     let playerCards = [];
@@ -248,35 +289,28 @@
         playerCards.push(drawCard());
         updateScores();
         if (playerTotal > 21) {
-          document.getElementById("gameStatus").textContent = "You lost, you went over 21!";
+          document.getElementById("gameStatus").textContent = "You lose!";
           gameInProgress = false;
         }
       }
     }
 
-    // Player stands (ends turn)
+    // Player stands
     function stand() {
       if (gameInProgress) {
         while (botTotal < 17) {
           botCards.push(drawCard());
           updateScores();
         }
-        checkWinner();
+        if (botTotal > 21 || playerTotal > botTotal) {
+          document.getElementById("gameStatus").textContent = "You win!";
+        } else if (playerTotal === botTotal) {
+          document.getElementById("gameStatus").textContent = "It's a tie!";
+        } else {
+          document.getElementById("gameStatus").textContent = "You lose!";
+        }
+        gameInProgress = false;
       }
-    }
-
-    // Check who is the winner
-    function checkWinner() {
-      if (botTotal > 21) {
-        document.getElementById("gameStatus").textContent = "Bot went over 21. You win!";
-      } else if (playerTotal > botTotal) {
-        document.getElementById("gameStatus").textContent = "You win!";
-      } else if (playerTotal < botTotal) {
-        document.getElementById("gameStatus").textContent = "You lost!";
-      } else {
-        document.getElementById("gameStatus").textContent = "It's a tie!";
-      }
-      gameInProgress = false;
     }
   </script>
 </body>
